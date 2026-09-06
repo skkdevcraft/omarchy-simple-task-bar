@@ -1,0 +1,22 @@
+{
+    "schemaVersion": 1,
+    "id": "io.github.librael-the-culprit.simple-task-bar",
+    "name": "Simple Task Bar",
+    "version": "1.0.0",
+    "author": "Librael-The-Culprit",
+    "license": "MIT",
+    "description": "Plasma-style task bar: shows icons for running apps, pins apps to the bar, and minimizes/maximizes windows to the scratchpad on click.",
+    "kinds": [
+        "bar-widget"
+    ],
+    "entryPoints": {
+        "barWidget": "BarWidget.qml"
+    },
+    "barWidget": {
+        "displayName": "Simple Task Bar",
+        "description": "Running/pinned app icons that minimize to the scratchpad on click.",
+        "category": "Launcher",
+        "allowMultiple": false,
+        "defaultSection": "left"
+    }
+}
