@@ -13,7 +13,11 @@ BarWidget {
   readonly property string stateDir: (Quickshell.env("HOME") || "") + "/.local/state/omarchy/taskbar"
   readonly property string pinnedPath: root.stateDir + "/pinned"
 
-  readonly property var appLibrary: root.bar && root.bar.shell ? root.bar.shell.appLibrary : null
+  LocalAppLibrary {
+    id: appLibraryFallback
+  }
+
+  readonly property var appLibrary: root.bar && root.bar.shell && root.bar.shell.appLibrary ? root.bar.shell.appLibrary : appLibraryFallback
 
   readonly property color chroma: root.bar && root.bar.barForeground ? root.bar.barForeground : Color.foreground
   readonly property color hoverColor: Util.alpha(root.chroma, 0.12)
