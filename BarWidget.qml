@@ -230,6 +230,25 @@ BarWidget {
     return false
   }
 
+  function isExcludedWindow(t) {
+    if (!t) return true
+  
+    var a = String(t.address || "")
+    var ci = root.clientInfo[a]
+    var o = t && t.lastIpcObject && typeof t.lastIpcObject === "object" ? t.lastIpcObject : null
+    var values = []
+    if (ci) { values.push(ci.class); values.push(ci.initialClass); values.push(ci.initialTitle) }
+    if (o) { values.push(o["class"]); values.push(o["initialClass"]); values.push(o["initialTitle"]) }
+    values.push(t.title)
+    values.push(root.windowKey(t))
+    for (var i = 0; i < values.length; i++) {
+      var v = String(values[i] || "")
+      if (v.indexOf("class:") === 0) return true
+      if (root.excludedClassMatch(v)) return true
+    }
+    return false
+  }
+
   function groupKeyFor(t) {
     var k = root.windowKey(t)
     if (!root.appLibrary || !k || root.isAliased(k)) return k
@@ -341,6 +360,7 @@ BarWidget {
     if (!wanted) return null
     var tls = root.toplevelValues()
     for (var i = 0; i < tls.length; i++) {
+      if (root.isExcludedWindow(tls[i])) continue
       var key = root.groupKeyFor(tls[i])
       if (key === wanted || (key.indexOf(wanted) >= 0 || wanted.indexOf(key) >= 0))
         return { address: String(tls[i].address), minimized: root.windowMinimized(tls[i]) }
@@ -352,6 +372,7 @@ BarWidget {
     var running = {}
     for (var i = 0; i < tls.length; i++) {
       var t = tls[i]
+      if (root.isExcludedWindow(t)) continue
       var key = root.groupKeyFor(t)
       if (!key) key = "window"
       var group = running[key]
@@ -395,6 +416,8 @@ BarWidget {
     for (p = 0; p < root.pinned.length; p++) {
       var pid = root.normalizeDesktopId(String(root.pinned[p]))
       if (!pid) continue
+      // Pinned entries that begin with "class:" are never shown.
+      if (pid.indexOf("class:") === 0) continue
       var entry = null
       var classKey = ""
       if (pid.indexOf("class:") === 0) {
@@ -413,6 +436,8 @@ BarWidget {
         entry = root.entryForId(pid)
       }
       var itemKey = entry ? root.appIdFrom(entry) : (classKey || pid)
+      if (classKey && root.excludedClassMatch(classKey)) continue
+      if (!classKey && root.excludedClassMatch(itemKey)) continue
       var runningGroup = root.matchRunningGroup(running, entry ? itemKey.toLowerCase() : classKey)
       var item = {
         key: itemKey,
@@ -528,12 +553,17 @@ BarWidget {
   function applyPinned(text) {
     var raw = String(text || "")
     var ids = []
+    var removed = false
     var lines = raw.split("\n")
     for (var i = 0; i < lines.length; i++) {
       var t = lines[i].trim()
-      if (t) ids.push(root.normalizeDesktopId(t))
+      if (!t) continue
+      // Drop any "class:" pin ids so they are never shown (and clean the file).
+      if (t.indexOf("class:") === 0) { removed = true; continue }
+      ids.push(root.normalizeDesktopId(t))
     }
     root.pinned = ids
+    if (removed) root.savePinned()
     root.scheduleRefresh()
   }
 

@@ -26,7 +26,9 @@ it directly from the repository:
 
 ```sh
 omarchy plugin add <repository-url> --enable
+omarchy restart shell
 ```
+
 
 The widget is a `bar-widget` placed in the bar's default section. If it does
 not appear after enabling, run `omarchy plugin list` to confirm it is enabled,
